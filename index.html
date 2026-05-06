@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mbappé STAY - Petición Culé</title>
+    <style>
+        :root {
+            --barca-blue: #004d98;
+            --barca-red: #a50044;
+            --barca-gold: #edbb00;
+            --white: #ffffff;
+            --dark-bg: #0a0a0a;
+            --card-bg: #161616;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--dark-bg); 
+            color: var(--white); 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 20px;
+        }
+
+        .container { max-width: 500px; width: 100%; text-align: center; }
+
+        .header-text { font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; color: #aaa; text-transform: uppercase; }
+        .header-text span { color: var(--barca-red); }
+
+        .image-container { position: relative; width: 100%; }
+        .main-img { 
+            width: 100%; 
+            border-radius: 5px; 
+            box-shadow: 0 0 30px rgba(165, 0, 68, 0.3);
+        }
+
+        .stay-badge {
+            position: relative;
+            top: -30px;
+            background: var(--barca-red);
+            color: white;
+            display: inline-block;
+            padding: 10px 30px;
+            font-size: 2rem;
+            font-weight: 900;
+            transform: rotate(-3deg);
+            border: 4px solid var(--white);
+            z-index: 10;
+            box-shadow: 5px 5px 0px var(--barca-blue);
+        }
+
+        .petition-box {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #333;
+            margin-top: 10px;
+        }
+
+        .counter-container { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+        .current-votes { font-size: 2.5rem; font-weight: bold; }
+        .goal-text { color: #888; font-size: 0.9rem; text-align: right; }
+        .goal-text span { color: var(--barca-gold); font-weight: bold; display: block; font-size: 1.2rem; }
+
+        .progress-bar-bg { background: #333; height: 12px; border-radius: 10px; overflow: hidden; margin-bottom: 5px; }
+        .progress-bar-fill { 
+            background: linear-gradient(90deg, var(--barca-blue), var(--barca-red)); 
+            height: 100%; 
+            width: 0%; 
+            transition: width 1.5s cubic-bezier(0.1, 0, 0.3, 1);
+        }
+        .percentage { font-size: 0.8rem; color: #666; text-align: right; }
+
+        button {
+            background: var(--barca-blue);
+            color: white;
+            border: none;
+            padding: 18px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            text-transform: uppercase;
+            transition: all 0.3s;
+            border-bottom: 4px solid #002d58;
+        }
+        button:hover { background: #0056ad; transform: translateY(-2px); }
+        button:active { transform: translateY(2px); border-bottom: 0; }
+        button:disabled { background: #444; cursor: not-allowed; border: none; }
+
+        .footer { margin-top: 25px; color: #555; font-size: 0.8rem; letter-spacing: 2px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-text">OPERACIÓN <span>MBAPPÉ QUÉDATE</span></div>
+    
+    <div class="image-container">
+        <!-- Imagen de Mbappé -->
+        <img src="https://phantom-marca.unidadeditorial.es/9452b4899553f1406e574676104e12e0/resize/1200/f/webp/assets/multimedia/imagenes/2024/02/16/17080820986708.jpg" class="main-img" alt="Mbappe">
+    </div>
+    
+    <div class="stay-badge">¡QUÉDATE!</div>
+
+    <p style="font-style: italic; color: #ccc; line-height: 1.5; padding: 0 10px;">
+        "Culers unidos por una causa: Queremos que Kylian se quede en el Madrid por muchos años. ¡Firma para que la fiesta no pare!"
+    </p>
+
+    <div class="petition-box">
+        <div class="counter-container">
+            <div id="vote-count" class="current-votes">0</div>
+            <div class="goal-text">OBJETIVO: <span id="goal-number">200,000</span></div>
+        </div>
+
+        <div class="progress-bar-bg">
+            <div id="progress-fill" class="progress-bar-fill"></div>
+        </div>
+        <div id="perc-text" class="percentage">0.00% de la meta</div>
+
+        <button id="vote-btn" onclick="castVote()">FIRMAR COMO CULÉ</button>
+        <p id="message" style="margin-top: 15px; color: var(--barca-gold); font-weight: bold;"></p>
+    </div>
+
+    <div class="footer">MAS CULER QUE LAPORTA </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // 1. CONFIGURACIÓN DE FIREBASE (PEGA TUS DATOS AQUÍ)
+    const firebaseConfig = {
+  apiKey: "AIzaSyD2ZQ8FTlGLm0geuaJsSjst81rf800jenU",
+  authDomain: "vota-para-que-mbappe-se-quede.firebaseapp.com",
+  databaseURL: "https://vota-para-que-mbappe-se-quede-default-rtdb.firebaseio.com",
+  projectId: "vota-para-que-mbappe-se-quede",
+  storageBucket: "vota-para-que-mbappe-se-quede.firebasestorage.app",
+  messagingSenderId: "565831459079",
+  appId: "1:565831459079:web:1c8fbb1cb9db528ee4a5a2",
+  measurementId: "G-R78Q3GMH23"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const votesRef = ref(db, 'votos_cule');
+    
+    const GOAL = 200000;
+    const btn = document.getElementById('vote-btn');
+    const display = document.getElementById('vote-count');
+    const fill = document.getElementById('progress-fill');
+    const percText = document.getElementById('perc-text');
+    const msg = document.getElementById('message');
+
+    onValue(votesRef, (snapshot) => {
+        const votes = snapshot.val() || 0;
+        display.innerText = votes.toLocaleString('de-DE'); 
+        let percentage = (votes / GOAL) * 100;
+        if (percentage > 100) percentage = 100;
+        fill.style.width = percentage + "%";
+        percText.innerText = percentage.toFixed(2) + "% del objetivo culé";
+    });
+
+    window.castVote = function() {
+        if (localStorage.getItem('votoMbappeStayCule')) {
+            msg.innerText = "Ya has enviado tu apoyo (y tus risas).";
+            return;
+        }
+
+        runTransaction(votesRef, (current) => {
+            return (current || 0) + 1;
+        }).then(() => {
+            localStorage.setItem('votoMbappeStayCule', 'true');
+            btn.disabled = true;
+            btn.innerText = "FIRMA REGISTRADA 🔵🔴";
+            msg.innerText = "¡Gracias! Todo sea por el espectáculo.";
+        });
+    };
+
+    if (localStorage.getItem('votoMbappeStayCule')) {
+        btn.disabled = true;
+        btn.innerText = "FIRMA REGISTRADA 🔵🔴";
+    }
+</script>
+
+</body>
+</html>
