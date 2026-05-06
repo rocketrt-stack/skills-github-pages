@@ -30,16 +30,28 @@
         .header-text { font-weight: bold; letter-spacing: 2px; margin-bottom: 10px; color: #aaa; text-transform: uppercase; }
         .header-text span { color: var(--barca-red); }
 
-        .image-container { position: relative; width: 100%; }
+        .image-container { 
+            position: relative; 
+            width: 100%; 
+            min-height: 350px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+        }
+
         .main-img { 
             width: 100%; 
-            border-radius: 5px; 
-            box-shadow: 0 0 30px rgba(165, 0, 68, 0.3);
+            max-width: 380px; 
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            /* Resaltamos al jugador sobre el fondo oscuro */
+            filter: drop-shadow(0 0 15px rgba(0, 77, 152, 0.6)); 
         }
 
         .stay-badge {
             position: relative;
-            top: -30px;
+            top: -60px; /* Ajustado para que pise el pecho de la nueva imagen */
             background: var(--barca-red);
             color: white;
             display: inline-block;
@@ -57,7 +69,7 @@
             padding: 30px;
             border-radius: 15px;
             border: 1px solid #333;
-            margin-top: 10px;
+            margin-top: -30px; /* Compensa la subida del badge */
         }
 
         .counter-container { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
@@ -102,8 +114,10 @@
     <div class="header-text">OPERACIÓN <span>MBAPPÉ QUÉDATE</span></div>
     
     <div class="image-container">
-        <!-- Imagen de Mbappé -->
-        <img src="https://phantom-marca.unidadeditorial.es/9452b4899553f1406e574676104e12e0/resize/1200/f/webp/assets/multimedia/imagenes/2024/02/16/17080820986708.jpg" class="main-img" alt="Mbappe">
+        <!-- Imagen oficial PNG (transparente) del Real Madrid -->
+        <img src="https://publish.realmadrid.com/content/dam/portals/realmadrid-com/es-es/sports/football/3kq9cckrnlogidldtdie2fkbl/players/mbappe/assets/MBAPPE_550x650_SinParche.png" 
+             class="main-img" 
+             alt="Kylian Mbappé">
     </div>
     
     <div class="stay-badge">¡QUÉDATE!</div>
@@ -121,21 +135,21 @@
         <div class="progress-bar-bg">
             <div id="progress-fill" class="progress-bar-fill"></div>
         </div>
-        <div id="perc-text" class="percentage">0.00% de la meta</div>
+        <div id="perc-text" class="percentage">0.00% del objetivo culé</div>
 
         <button id="vote-btn" onclick="castVote()">FIRMAR COMO CULÉ</button>
         <p id="message" style="margin-top: 15px; color: var(--barca-gold); font-weight: bold;"></p>
     </div>
 
-    <div class="footer">MAS CULER QUE LAPORTA </div>
+    <div class="footer">MÉS QUE UN CLUB (Deseando que se quede)</div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    // 1. CONFIGURACIÓN DE FIREBASE (PEGA TUS DATOS AQUÍ)
-    const firebaseConfig = {
+    // CONFIGURACIÓN DE FIREBASE (PEGA TUS DATOS AQUÍ)
+const firebaseConfig = {
   apiKey: "AIzaSyD2ZQ8FTlGLm0geuaJsSjst81rf800jenU",
   authDomain: "vota-para-que-mbappe-se-quede.firebaseapp.com",
   databaseURL: "https://vota-para-que-mbappe-se-quede-default-rtdb.firebaseio.com",
@@ -148,7 +162,7 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    const votesRef = ref(db, 'votos_cule');
+    const votesRef = ref(db, 'votos_cule_stay'); // Nueva rama para esta versión
     
     const GOAL = 200000;
     const btn = document.getElementById('vote-btn');
